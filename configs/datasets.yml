@@ -1,19 +1,19 @@
-mmidb:
-  name: "Physionet MMIDB - All Raw"
-  toplevel: <USER SPECIFIC>/physionet.org/files/eegmmidb/
-  stride: 1024
-  data_max: 0.001
-  data_min: -0.001
-  exclude_people:
-    - S088
-    - S090
-    - S092
-    - S100
+#mmidb:
+#  name: "Physionet MMIDB - All Raw"
+#  toplevel: /h/146/demetres/datasets/physionet.org/files/eegmmidb/
+#  stride: 1024
+#  data_max: 0.001
+#  data_min: -0.001
+#  exclude_people:
+#    - S088
+#    - S090
+#    - S092
+#    - S100
 
 
 mmidb_lrh:
   name: "Physionet MMIDB - L/R Hand MI"
-  toplevel: <USER SPECIFIC>/physionet.org/files/eegmmidb/
+  toplevel: /scratch/ssd001/home/kostasde/data/physionet.org/files/eegmmidb/
   tmin: 0
   tlen: 3
   data_max: 0.001
@@ -30,26 +30,26 @@ mmidb_lrh:
     - S092
     - S100
 
-bci_iv_2a:
-  name: "BCI Competition IV 2a"
-  toplevel: <USER SPECIFIC>
-#  stride: 1024
-  tmin: -0.5
-  tlen: 4.5
-  data_max: 100
-  data_min: -100
-  extensions:
-    - .raw.fif
-  picks:
-    - eeg
-#  exclude_sessions:
-#    - "*E*"
+#bci_iv_2a:
+#  name: "BCI Competition IV 2a"
+#  toplevel: /ais/clspace5/spoclab/BrainData/BCI-Competition-IV/dataset_2a/
+##  stride: 1024
+#  tmin: -0.5
+#  tlen: 4.5
+#  data_max: 100
+#  data_min: -100
+#  extensions:
+#    - .raw.fif
+#  picks:
+#    - eeg
+##  exclude_sessions:
+##    - "*E*"
 
 tueg_v1_2:
   data_max: 3276.7
   data_min: -1583.9258304722666
-  toplevel: <USER SPECIFIC>/TUEG/v1.2.0
-  stride: 7680 # = 256 * 30 = 30 seconds
+  toplevel: /scratch/hdd001/home/kostasde/datasets/TUEG/v1.2.0
+  stride: 7680 # = 256 * 60 = 60 seconds
   thinkers: 1507
   dataset_id: 3
   task_id: 2

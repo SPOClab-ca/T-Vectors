@@ -1,7 +1,7 @@
 Configuratron:
   use_only:
-#    - mmidb_lrh
-    - bci_iv_2a
+    - mmidb_lrh
+#    - bci_iv_2a
     - tueg_v1_2
   samples: 1280 # 5 seconds
   sfreq: 256
@@ -13,9 +13,9 @@ training_params:
   lr: 0.001
   l2: 0.00001
   batch_size: 128
-#  validation_dataset: "mmidb_lrh"
-  validation_dataset: "bci_iv_2a"
+  validation_dataset: "mmidb_lrh"
+#  validation_dataset: "bci_iv_2a"
 
-t_vector_weights: checkpoints/t-vectors_epoch-{}.pt
+t_vector_weights: checkpoints/t-vectors-{}.pt
 
 datasets: !include configs/datasets.yml

@@ -2,16 +2,20 @@ import bisect
 import torch
 import tqdm
 import numpy as np
+import wandb
+import pickle
+import h5py
 
 from pandas import DataFrame
+from pathlib import Path
 
 from torch import nn
-from torch.utils.data import ConcatDataset, DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 from dn3.transforms.instance import InstanceTransform, CropAndResample, Deep1010ToEEG, UniformTransformSelection
 from dn3.transforms.channels import DEEP_1010_CHS_LISTING
 from dn3.trainable.experimental import TVector
-
+from torch.utils.data.dataset import T_co
 
 CH_NAMES_1020 = ['FP1', 'FP2', 'F3', 'F4', 'C3', 'C4', 'P3', 'P4', 'O1', 'O2',
                  'F7', 'F8', 'T3', 'T4', 'T5', 'T6', 'Fz', 'Cz', 'Pz']
@@ -95,7 +99,39 @@ def load_datasets(experiment, return_training=True, return_validating=False, sam
     return returning
 
 
-def create_numpy_formatted_ds(dataset, tvector_model: nn.Module, batch_size=128):
+def create_rapid_load_ds(dataset, directory):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    print(f"Saving dataset to: {directory.resolve()}")
+
+    for i, batch in enumerate(tqdm.tqdm(dataset, desc="Dumping dataset")):
+        fn = directory / (str(i) + '.h5')
+        with h5py.File(str(fn), 'w') as hf:
+            dset = hf.create_dataset("x", data=batch[0])
+            i = 1
+            if dataset.return_person_id:
+                dset.attrs['person_id'] = batch[i]
+                i += 1
+            if dataset.return_session_id:
+                dset.attrs['session_id'] = batch[i]
+                i += 1
+            if dataset.get_targets() is not None:
+                dset.attrs['target'] = batch[i]
+
+
+class SpeedySet(Dataset):
+
+    def __init__(self, directory, cache_size=None):
+        self.directory = directory
+        self.cache = dict()
+        if cache_size is None or cache_size == 0:
+
+
+    def __getitem__(self, index):
+        pass
+
+
+def create_numpy_formatted_tvectors(dataset, tvector_model: nn.Module, batch_size=128):
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, drop_last=False)
     tvectors = list()
     columns = list()
@@ -194,3 +230,40 @@ class ScoreLabels(InstanceTransform):
         label = int(self.score_df[self.score_df['Person'] == self.ordered_people[args[1].item()]]
                     [self.score_column].values[0] > self.score_threshold)
         return [args[0], label]
+
+
+class WandBLogging:
+
+    def __init__(self, checkpoint_dir, wandb_checkpoint_file='wandb_run_tracking.txt', resume=True, **kwargs):
+        self.state_file = Path(checkpoint_dir) / wandb_checkpoint_file
+        self.id = wandb.util.generate_id()
+        self.load_state()
+        self.run = wandb.init(id=self.id, resume=resume, **kwargs)
+        self.training_callback = self.get_callback()
+        self.validation_callback = self.get_callback(log_prefix='Validating ')
+
+    def save_state(self, **kwargs):
+        state = {"rng": torch.random.get_rng_state(), id: self.id, **kwargs}
+        with self.state_file.open('wb') as f:
+            pickle.dump(state, f)
+
+    def load_state(self):
+        state = None
+        if self.state_file.exists():
+            state = pickle.load(self.state_file.open('rb'))
+            torch.set_rng_state(state['rng'])
+            self.id = state['id']
+        return state
+
+    @staticmethod
+    def watch(models, **kwargs):
+        wandb.watch(models, **kwargs)
+
+    @staticmethod
+    def get_callback(log_prefix='Training '):
+        def cb(metrics: dict):
+            prefixed = dict()
+            for k, v in metrics.items():
+                prefixed[log_prefix + k] = v
+            wandb.log(prefixed)
+        return cb

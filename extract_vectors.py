@@ -4,7 +4,7 @@ from pathlib import Path
 from dn3.configuratron import ExperimentConfig
 from dn3.trainable.experimental import TVector
 
-from dn3_ext import load_datasets, create_numpy_formatted_ds
+from dn3_ext import load_datasets, create_numpy_formatted_tvectors
 
 
 def extract_vectors(args):
@@ -20,7 +20,7 @@ def extract_vectors(args):
     t_vectors.train(False)
     if args.session_id:
         validating.update_id_returns(session=True)
-    return create_numpy_formatted_ds(validating, t_vectors)
+    return create_numpy_formatted_tvectors(validating, t_vectors)
 
 
 if __name__ == '__main__':
